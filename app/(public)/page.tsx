@@ -17,7 +17,7 @@ import {
 const UNSPLASH = {
   salonInterior: "https://images.unsplash.com/photo-1637777277337-f114350fb088",
   hairStyling: "https://images.unsplash.com/photo-1560066984-138dadb4c035",
-  salonMirror: "https://images.unsplash.com/photo-1521590832167-7acbfdda340e",
+  salonMirror: "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHNhbG9uJTIwaGFpcnxlbnwwfHwwfHx8MA%3D%3D",
 };
 
 export default function PublicHomePage() {
