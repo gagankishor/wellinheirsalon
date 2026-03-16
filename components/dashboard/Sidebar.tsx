@@ -15,6 +15,8 @@ import {
   LogOut,
   Clock,
   UserCircle,
+  FileText,
+  KeyRound,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 
@@ -25,7 +27,9 @@ const adminNav = [
   { href: "/dashboard/customers", label: "Customers", icon: Users },
   { href: "/dashboard/staff", label: "Staff", icon: UserCog },
   { href: "/dashboard/services", label: "Services", icon: Scissors },
+  { href: "/dashboard/service-records", label: "Service Records", icon: FileText },
   { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
+  { href: "/dashboard/users", label: "Users", icon: KeyRound },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 

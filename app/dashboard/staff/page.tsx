@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 
 interface StaffMember {
   _id: string;
@@ -47,6 +47,13 @@ export default function StaffPage() {
     fetchStaff();
   };
 
+  const deleteStaff = async (staffId: string, name: string) => {
+    if (!confirm(`Deactivate "${name}"? They will be removed from the list.`)) return;
+    const res = await fetch(`/api/staff/${staffId}`, { method: "DELETE" });
+    if (res.ok) fetchStaff();
+    else alert("Failed to delete.");
+  };
+
   return (
     <div className="p-8">
       <div className="mb-6 flex items-center justify-between">
@@ -81,16 +88,32 @@ export default function StaffPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {staff.map((s) => (
-            <Link
+            <div
               key={s._id}
-              href={`/dashboard/staff/${s._id}`}
               className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm transition hover:border-[var(--accent)]/30"
             >
-              <h2 className="font-medium">{s.name}</h2>
-              <p className="text-sm text-[var(--muted)]">{s.role}</p>
-              <p className="mt-2 text-sm">Commission: {s.commissionPercent}%</p>
-              {s.baseSalary != null && <p className="text-sm">Base: ₹{s.baseSalary}</p>}
-            </Link>
+              <Link href={`/dashboard/staff/${s._id}`} className="block">
+                <h2 className="font-medium">{s.name}</h2>
+                <p className="text-sm text-[var(--muted)]">{s.role}</p>
+                <p className="mt-2 text-sm">Commission: {s.commissionPercent}%</p>
+                {s.baseSalary != null && <p className="text-sm">Base: ₹{s.baseSalary}</p>}
+              </Link>
+              <div className="mt-4 flex gap-2">
+                <Link
+                  href={`/dashboard/staff/${s._id}`}
+                  className="inline-flex items-center gap-1 rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm hover:bg-[var(--card-hover)]"
+                >
+                  <Pencil className="h-3.5 w-3.5" /> Edit
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => deleteStaff(s._id, s.name)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-red-500/50 px-3 py-1.5 text-sm text-red-500 hover:bg-red-500/10"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       )}

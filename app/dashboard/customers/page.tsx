@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import Link from "next/link";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Pencil, Trash2 } from "lucide-react";
 
 interface Customer {
   _id: string;
@@ -48,6 +48,13 @@ export default function CustomersPage() {
     setNewEmail("");
     setShowAdd(false);
     fetchCustomers();
+  };
+
+  const deleteCustomer = async (customerId: string, name: string) => {
+    if (!confirm(`Delete customer "${name}"? This cannot be undone.`)) return;
+    const res = await fetch(`/api/customers/${customerId}`, { method: "DELETE" });
+    if (res.ok) fetchCustomers();
+    else alert("Failed to delete.");
   };
 
   return (
@@ -95,7 +102,7 @@ export default function CustomersPage() {
                 <th className="p-3 font-medium">Email</th>
                 <th className="p-3 font-medium">Birthday</th>
                 <th className="p-3 font-medium">Preferred stylist</th>
-                <th className="p-3 font-medium" />
+                <th className="p-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -109,9 +116,14 @@ export default function CustomersPage() {
                   </td>
                   <td className="p-3">{c.preferredStaffId?.name ?? "—"}</td>
                   <td className="p-3">
-                    <Link href={`/dashboard/customers/${c._id}`} className="text-[var(--accent)] hover:underline">
-                      View
-                    </Link>
+                    <div className="flex gap-2">
+                      <Link href={`/dashboard/customers/${c._id}`} className="inline-flex items-center gap-1 text-[var(--accent)] hover:underline">
+                        <Pencil className="h-3.5 w-3.5" /> Edit
+                      </Link>
+                      <button type="button" onClick={() => deleteCustomer(c._id, c.name)} className="inline-flex items-center gap-1 text-red-500 hover:underline">
+                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

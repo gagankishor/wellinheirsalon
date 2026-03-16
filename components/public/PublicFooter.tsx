@@ -1,10 +1,14 @@
 import Link from "next/link";
-import { Scissors, MapPin, Clock, Phone, Mail } from "lucide-react";
+import { Scissors, MapPin, Clock, Phone, Mail, Instagram, ExternalLink } from "lucide-react";
+
+const INSTAGRAM_URL = "https://www.instagram.com/wellin_hair_saloon/";
+const GOOGLE_MAPS_URL = "https://share.google/1OZsXZ610ksXGv4qf";
 
 const links = [
   { href: "/", label: "Home" },
   { href: "/services", label: "Services" },
   { href: "/about", label: "About" },
+  { href: "/gallery", label: "Gallery" },
   { href: "/contact", label: "Contact" },
   { href: "/booking", label: "Book online" },
 ];
@@ -55,6 +59,17 @@ export default function PublicFooter() {
                 <Mail className="h-4 w-4 shrink-0 text-[var(--accent)]" />
                 <a href="mailto:wellinhairsaloon@gmail.com" className="transition hover:text-[var(--accent)]">wellinhairsaloon@gmail.com</a>
               </p>
+              <div className="flex flex-wrap gap-2 pt-2">
+                <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm opacity-90 transition hover:opacity-100 hover:text-[var(--accent)]">
+                  <Instagram className="h-4 w-4" />
+                  Instagram
+                </a>
+                <span className="text-[var(--muted)]">·</span>
+                <a href={GOOGLE_MAPS_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm opacity-90 transition hover:opacity-100 hover:text-[var(--accent)]">
+                  <ExternalLink className="h-4 w-4" />
+                  Google
+                </a>
+              </div>
             </div>
           </div>
 

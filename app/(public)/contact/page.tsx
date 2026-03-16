@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { MapPin, Clock, Phone, Mail, Calendar, User } from "lucide-react";
+import { MapPin, Clock, Phone, Mail, Calendar, User, Instagram, ExternalLink } from "lucide-react";
+
+const INSTAGRAM_URL = "https://www.instagram.com/wellin_hair_saloon/";
+const GOOGLE_MAPS_URL = "https://share.google/1OZsXZ610ksXGv4qf";
 
 export const metadata = {
   title: "Contact | Wellins Hair Salon",
@@ -63,15 +66,26 @@ export default function ContactPage() {
                 </p>
               </div>
             </div>
-            <a
-              href="https://maps.google.com/?q=8+C+42+Sector+8+behind+Lucky+International+School+Jodhpur"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-[var(--accent)] hover:underline"
-            >
-              <MapPin className="h-4 w-4" />
-              Open in Google Maps
-            </a>
+            <div className="mt-6 flex flex-wrap gap-4">
+              <a
+                href={GOOGLE_MAPS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[var(--accent)] hover:underline"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Find us on Google
+              </a>
+              <a
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[var(--accent)] hover:underline"
+              >
+                <Instagram className="h-4 w-4" />
+                Instagram
+              </a>
+            </div>
           </div>
         </div>
 

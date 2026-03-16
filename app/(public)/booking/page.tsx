@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { format, addDays } from "date-fns";
 
 interface Service {
@@ -95,20 +96,45 @@ export default function PublicBookingPage() {
     }
   };
 
+  const resetAndBookAnother = () => {
+    setSuccess(false);
+    setStep("service");
+    setSelectedService(null);
+    setSelectedStaff(null);
+    setSelectedDate(null);
+    setSelectedSlot(null);
+    setSlots([]);
+    setName("");
+    setPhone("");
+    setEmail("");
+  };
+
   if (success) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center p-4">
-        <div className="max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 text-center shadow-sm">
-          <h1 className="text-xl font-semibold text-[var(--accent)]">Booking confirmed</h1>
+      <div className="flex min-h-[60vh] items-center justify-center px-4 py-16">
+        <div className="w-full max-w-md rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 sm:p-10 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent-light)]">
+            <CheckCircle2 className="h-8 w-8 text-[var(--accent)]" />
+          </div>
+          <h1 className="text-xl font-semibold text-[var(--foreground)]">Booking confirmed</h1>
           <p className="mt-2 text-[var(--muted)]">
-            We’ll send you a reminder before your appointment.
+            We’ll send you a reminder before your appointment. See you at Wellins!
           </p>
-          <Link
-            href="/booking"
-            className="mt-6 inline-block rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-          >
-            Book another
-          </Link>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <button
+              type="button"
+              onClick={resetAndBookAnother}
+              className="inline-flex justify-center rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+            >
+              Book another
+            </button>
+            <Link
+              href="/"
+              className="inline-flex justify-center rounded-lg border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--card-hover)]"
+            >
+              Back to home
+            </Link>
+          </div>
         </div>
       </div>
     );

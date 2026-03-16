@@ -38,3 +38,19 @@ export async function PATCH(
     return NextResponse.json({ error: "Failed to update customer" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await connectDB();
+    const { id } = await params;
+    const customer = await Customer.findByIdAndDelete(id);
+    if (!customer) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    console.error(e);
+    return NextResponse.json({ error: "Failed to delete customer" }, { status: 500 });
+  }
+}

@@ -172,6 +172,7 @@ export default function AppointmentsPage() {
       {modal === "detail" && selectedId && (
         <AppointmentDetailModal
           id={selectedId}
+          staff={staff}
           onClose={() => { setModal("none"); setSelectedId(null); }}
           onUpdated={() => { fetchAppointments(); setModal("none"); setSelectedId(null); }}
         />
@@ -312,16 +313,22 @@ function WalkInModal({
 
 function AppointmentDetailModal({
   id,
+  staff: staffList,
   onClose,
   onUpdated,
 }: {
   id: string;
+  staff: Staff[];
   onClose: () => void;
   onUpdated: () => void;
 }) {
   const [app, setApp] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
-  const [action, setAction] = useState<"none" | "reschedule" | "cancel">("none");
+  const [editing, setEditing] = useState(false);
+  const [customers, setCustomers] = useState<{ _id: string; name: string; phone: string }[]>([]);
+  const [services, setServices] = useState<{ _id: string; name: string; durationMinutes: number; price: number }[]>([]);
+  const [editForm, setEditForm] = useState({ customerId: "", staffId: "", serviceId: "", startTime: "", endTime: "" });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetch(`/api/appointments/${id}`)
@@ -329,6 +336,28 @@ function AppointmentDetailModal({
       .then(setApp)
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (editing) {
+      fetch("/api/customers").then((r) => r.json()).then((d) => setCustomers(Array.isArray(d) ? d : []));
+      fetch("/api/services").then((r) => r.json()).then((d) => setServices(Array.isArray(d) ? d : []));
+    }
+  }, [editing]);
+
+  useEffect(() => {
+    if (app && editing) {
+      const staffId = (app.staffId as { _id?: string })?._id ?? (app.staffId as unknown as string);
+      const customerId = (app.customerId as { _id?: string })?._id ?? (app.customerId as unknown as string);
+      const serviceId = (app.serviceId as { _id?: string })?._id ?? (app.serviceId as unknown as string);
+      setEditForm({
+        customerId: typeof customerId === "string" ? customerId : "",
+        staffId: typeof staffId === "string" ? staffId : "",
+        serviceId: typeof serviceId === "string" ? serviceId : "",
+        startTime: app.startTime ? format(new Date(app.startTime), "yyyy-MM-dd'T'HH:mm") : "",
+        endTime: app.endTime ? format(new Date(app.endTime), "yyyy-MM-dd'T'HH:mm") : "",
+      });
+    }
+  }, [app, editing]);
 
   const updateStatus = async (status: string) => {
     const res = await fetch(`/api/appointments/${id}`, {
@@ -340,6 +369,29 @@ function AppointmentDetailModal({
       const data = await res.json();
       setApp(data);
       if (status === "cancelled") onUpdated();
+    }
+  };
+
+  const saveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    const res = await fetch(`/api/appointments/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        customerId: editForm.customerId,
+        staffId: editForm.staffId,
+        serviceId: editForm.serviceId,
+        startTime: new Date(editForm.startTime).toISOString(),
+        endTime: new Date(editForm.endTime).toISOString(),
+      }),
+    });
+    setSaving(false);
+    if (res.ok) {
+      const data = await res.json();
+      setApp(data);
+      setEditing(false);
+      onUpdated();
     }
   };
 
@@ -359,48 +411,70 @@ function AppointmentDetailModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="w-full max-w-md rounded-xl bg-[var(--card)] p-6 shadow-xl">
         <h2 className="mb-4 text-lg font-semibold">Appointment</h2>
-        <div className="space-y-2 text-sm">
-          <p><span className="text-[var(--muted)]">Time:</span> {format(new Date(app.startTime), "HH:mm, d MMM yyyy")}</p>
-          <p><span className="text-[var(--muted)]">Customer:</span> {customer?.name} {customer?.phone && `(${customer.phone})`}</p>
-          <p><span className="text-[var(--muted)]">Staff:</span> {staff?.name}</p>
-          <p><span className="text-[var(--muted)]">Service:</span> {service?.name} – {service?.price}</p>
-          <p><span className="text-[var(--muted)]">Status:</span> {app.status}</p>
-          {app.isWalkIn && <p className="text-amber-600">Walk-in</p>}
-        </div>
-        <div className="mt-6 flex flex-wrap gap-2">
-          {!["cancelled", "completed"].includes(app.status) && (
-            <>
-              <button
-                type="button"
-                onClick={() => updateStatus("confirmed")}
-                className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm"
-              >
-                Confirm
-              </button>
-              <button
-                type="button"
-                onClick={() => updateStatus("completed")}
-                className="rounded-lg border border-green-600 text-green-600 px-3 py-1.5 text-sm"
-              >
-                Mark completed
-              </button>
-              <button
-                type="button"
-                onClick={() => updateStatus("cancelled")}
-                className="rounded-lg border border-red-500 text-red-500 px-3 py-1.5 text-sm"
-              >
-                Cancel
-              </button>
-            </>
-          )}
-          <button
-            type="button"
-            onClick={onClose}
-            className="ml-auto rounded-lg bg-[var(--border)] px-3 py-1.5 text-sm text-[var(--foreground)]"
-          >
-            Close
-          </button>
-        </div>
+        {editing ? (
+          <form onSubmit={saveEdit} className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium">Customer</label>
+              <select value={editForm.customerId} onChange={(e) => setEditForm((f) => ({ ...f, customerId: e.target.value }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2" required>
+                {customers.map((c) => (
+                  <option key={c._id} value={c._id}>{c.name} – {c.phone}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Staff</label>
+              <select value={editForm.staffId} onChange={(e) => setEditForm((f) => ({ ...f, staffId: e.target.value }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2" required>
+                {staffList.map((s) => (
+                  <option key={s._id} value={s._id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Service</label>
+              <select value={editForm.serviceId} onChange={(e) => setEditForm((f) => ({ ...f, serviceId: e.target.value }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2" required>
+                {services.map((s) => (
+                  <option key={s._id} value={s._id}>{s.name} ({s.durationMinutes} min)</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">Start</label>
+              <input type="datetime-local" value={editForm.startTime} onChange={(e) => setEditForm((f) => ({ ...f, startTime: e.target.value }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2" required />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium">End</label>
+              <input type="datetime-local" value={editForm.endTime} onChange={(e) => setEditForm((f) => ({ ...f, endTime: e.target.value }))} className="w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-3 py-2" required />
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button type="button" onClick={() => setEditing(false)} className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm">Cancel</button>
+              <button type="submit" disabled={saving} className="rounded-lg bg-[var(--accent)] px-3 py-1.5 text-sm text-white disabled:opacity-50">{saving ? "Saving…" : "Save"}</button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <div className="space-y-2 text-sm">
+              <p><span className="text-[var(--muted)]">Time:</span> {format(new Date(app.startTime), "HH:mm, d MMM yyyy")}</p>
+              <p><span className="text-[var(--muted)]">Customer:</span> {customer?.name} {customer?.phone && `(${customer.phone})`}</p>
+              <p><span className="text-[var(--muted)]">Staff:</span> {staff?.name}</p>
+              <p><span className="text-[var(--muted)]">Service:</span> {service?.name} – ₹{service?.price}</p>
+              <p><span className="text-[var(--muted)]">Status:</span> {app.status}</p>
+              {app.isWalkIn && <p className="text-amber-600">Walk-in</p>}
+            </div>
+            <div className="mt-6 flex flex-wrap gap-2">
+              {!["cancelled", "completed"].includes(app.status) && (
+                <>
+                  <button type="button" onClick={() => setEditing(true)} className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm">
+                    Edit
+                  </button>
+                  <button type="button" onClick={() => updateStatus("confirmed")} className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm">Confirm</button>
+                  <button type="button" onClick={() => updateStatus("completed")} className="rounded-lg border border-green-600 text-green-600 px-3 py-1.5 text-sm">Mark completed</button>
+                  <button type="button" onClick={() => updateStatus("cancelled")} className="rounded-lg border border-red-500 text-red-500 px-3 py-1.5 text-sm">Cancel appointment</button>
+                </>
+              )}
+              <button type="button" onClick={onClose} className="ml-auto rounded-lg bg-[var(--border)] px-3 py-1.5 text-sm text-[var(--foreground)]">Close</button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
