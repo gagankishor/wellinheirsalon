@@ -33,7 +33,7 @@ export default function PublicHomePage() {
             className="object-cover opacity-25"
             priority
             sizes="100vw"
-          />
+          /> 
           <div className="absolute inset-0 bg-[linear-gradient(135deg,var(--background)_30%,transparent_60%)]" />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,var(--accent-light)_0%,transparent_45%)] opacity-40" />
         </div>
